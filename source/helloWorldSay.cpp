@@ -27,16 +27,9 @@ namespace HelloWorldSayExample {
   private:
     // Very basic speech synthesizer using the command line.
     void Speak(const String& text) {
-      static auto initialized = false;
-      if (!initialized) {
-        auto file = ofstream {temp_directory_path() / "say.cmd"};
-        if ((SystemStats::getOperatingSystemType() & SystemStats::Windows) == SystemStats::Windows) file << "@echo Set Speaker=CreateObject(\"sapi.spvoice\") > %TEMP%\\say.vbs\n@echo Speaker.Speak %* >> %TEMP%\\say.vbs\n@%TEMP%\\say.vbs";
-        else if ((SystemStats::getOperatingSystemType() & SystemStats::MacOSX) == SystemStats::MacOSX) file << "say $*";
-        else file << "spd-say $*";
-        permissions(temp_directory_path() / "say.cmd", perms::owner_all);
-        initialized = true;
-      }
-      Process::openDocument((temp_directory_path() / "say.cmd").string(), text);
+      #if JUCE_WINDOWS
+        system(("powershell -Command \"Add-Type -AssemblyName System.Speech; (New-Object System.Speech.Synthesis.SpeechSynthesizer).Speak('" + text + "');\"").toRawUTF8());
+      #endif
     }
     Component mainComponent;
     TextButton button1;
@@ -47,7 +40,7 @@ namespace HelloWorldSayExample {
     const String getApplicationName() override {return ProjectInfo::projectName;}
     const String getApplicationVersion() override {return ProjectInfo::versionString;}
     
-    void initialise(const String& commandLine) override {mainWindow.setVisible(true);}
+    void initialise(const String&) override {mainWindow.setVisible(true);}
     void shutdown() override {}
     
   private:
