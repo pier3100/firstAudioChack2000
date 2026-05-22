@@ -42,7 +42,11 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
+    juce::String getSamplerPath() const;
+    void setSamplerPath (const juce::String& newPath);
+
 private:
     //==============================================================================
+    juce::ValueTree state {"SamplerState"};
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (AudioPluginAudioProcessor)
 };

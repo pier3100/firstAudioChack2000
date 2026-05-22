@@ -1,3 +1,4 @@
+#include <juce_gui_extra/juce_gui_extra.h>
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 
@@ -5,20 +6,40 @@
 AudioPluginAudioProcessorEditor::AudioPluginAudioProcessorEditor (AudioPluginAudioProcessor& p)
     : AudioProcessorEditor (&p), processorRef (p)
 {
-    juce::ignoreUnused (processorRef);
-    // Make sure that before the constructor has finished, you've set the
-    // editor's size to whatever you need it to be.
-    setSize (400, 300);
+    chooseFileButton.onClick = [this] { chooseFile(); };
+    addAndMakeVisible (chooseFileButton);
+
+    pathLabel.setJustificationType (juce::Justification::left);
+    pathLabel.setColour (juce::Label::textColourId, juce::Colours::white);
+    pathLabel.setText (processorRef.getSamplerPath(), juce::dontSendNotification);
+    addAndMakeVisible (pathLabel);
+
+    setSize (400, 120);
 }
 
 AudioPluginAudioProcessorEditor::~AudioPluginAudioProcessorEditor()
 {
 }
 
+void AudioPluginAudioProcessorEditor::chooseFile()
+{
+    auto chooser = std::make_shared<juce::FileChooser> ("Select a sample file");
+
+    chooser->launchAsync (juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles,
+                           [this, chooser] (const juce::FileChooser& fc)
+                           {
+                               auto file = fc.getResult();
+                               if (file.existsAsFile())
+                               {
+                                   processorRef.setSamplerPath (file.getFullPathName());
+                                   pathLabel.setText (processorRef.getSamplerPath(), juce::dontSendNotification);
+                               }
+                           });
+}
+
 //==============================================================================
 void AudioPluginAudioProcessorEditor::paint (juce::Graphics& g)
 {
-    // (Our component is opaque, so we must completely fill the background with a solid colour)
     g.fillAll (getLookAndFeel().findColour (juce::ResizableWindow::backgroundColourId));
 
     g.setColour (juce::Colours::white);
@@ -28,6 +49,7 @@ void AudioPluginAudioProcessorEditor::paint (juce::Graphics& g)
 
 void AudioPluginAudioProcessorEditor::resized()
 {
-    // This is generally where you'll want to lay out the positions of any
-    // subcomponents in your editor..
+    auto area = getLocalBounds().reduced (16);
+    chooseFileButton.setBounds (area.removeFromTop (32));
+    pathLabel.setBounds (area.removeFromTop (32));
 }
