@@ -22,20 +22,34 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-juce_add_gui_app(${PROJECT_NAME})
+juce_add_plugin(${PROJECT_NAME}
+    COMPANY_NAME "BusinessBoys"
+    PLUGIN_MANUFACTURER_CODE Juce
+    PLUGIN_CODE HWSA
+    FORMATS VST3 Standalone
+    PRODUCT_NAME "FirstPlugin"
+)
+
+juce_generate_juce_header(${PROJECT_NAME})
+
+target_sources(${PROJECT_NAME} PRIVATE
+    source/PluginProcessor.cpp
+    source/PluginEditor.cpp
+)
+
+target_compile_definitions(${PROJECT_NAME}
+    PUBLIC
+        JUCE_WEB_BROWSER=0  # If you remove this, add `NEEDS_WEB_BROWSER TRUE` to the `juce_add_plugin` call
+        JUCE_USE_CURL=0     # If you remove this, add `NEEDS_CURL TRUE` to the `juce_add_plugin` call
+        JUCE_VST3_CAN_REPLACE_VST2=0)
 
 target_link_libraries(
   ${PROJECT_NAME}
   PRIVATE
-    juce::juce_audio_processors
-    juce::juce_core
-    juce::juce_gui_basics
+    juce::juce_audio_utils
   PUBLIC
     juce::juce_recommended_config_flags
     juce::juce_recommended_lto_flags
     juce::juce_recommended_warning_flags
 )
 
-juce_generate_juce_header(${PROJECT_NAME})
-
-target_sources(${PROJECT_NAME} PRIVATE source/HelloWorldSay.cpp)
